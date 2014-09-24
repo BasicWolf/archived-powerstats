@@ -1,0 +1,17 @@
+<resources>
+    <dimen name="quickstats_plot_padding_top">2dp</dimen>
+    <dimen name="quickstats_plot_padding_right">0dp</dimen>
+    <dimen name="quickstats_plot_padding_bottom">2dp</dimen>
+    <dimen name="quickstats_plot_padding_left">2dp</dimen>
+
+    <dimen name="plot_padding_top">2dp</dimen>
+    <dimen name="plot_padding_right">0dp</dimen>
+    <dimen name="plot_padding_bottom">2dp</dimen>
+    <dimen name="plot_padding_left">2dp</dimen>
+
+    <dimen name="plot_label_base_size">10sp</dimen>
+    <dimen name="domain_label_font_size">@dimen/plot_label_base_size</dimen>
+    <dimen name="range_label_font_size">@dimen/plot_label_base_size</dimen>
+    <dimen name="range_tick_label_font_size">@dimen/plot_label_base_size</dimen>
+    <dimen name="domain_tick_label_font_size">@dimen/plot_label_base_size</dimen>
+</resources>

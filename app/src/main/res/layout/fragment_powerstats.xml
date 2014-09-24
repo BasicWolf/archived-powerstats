@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <view
+        class="com.znasibov.powerstats.PowerStatsPlot"
+        android:id="@+id/powerstats_plot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_column="0"
+        android:layout_span="2"
+        android:layout_weight="45"
+
+        androidPlot.legendWidget.visible="false"
+
+        android:layerType="hardware"
+        androidPlot.renderMode="use_background_thread"
+        androidPlot.graphWidget.paddingTop="@dimen/plot_padding_top"
+        androidPlot.graphWidget.paddingRight="@dimen/plot_padding_right"
+        androidPlot.graphWidget.paddingBottom="@dimen/plot_padding_bottom"
+        androidPlot.graphWidget.paddingLeft="@dimen/plot_padding_left"
+
+        androidPlot.graphWidget.backgroundPaint.color="@color/plot_graph_background"
+        androidPlot.graphWidget.gridBackgroundPaint.color="@color/plot_grid_background"
+        androidPlot.backgroundPaint.color="@color/plot_background"
+        androidPlot.borderPaint.color="@color/plot_border"
+        androidPlot.graphWidget.domainLabelPaint.color="@color/domain_tick_label"
+        androidPlot.graphWidget.rangeLabelPaint.color="@color/range_tick_label"
+        androidPlot.rangeLabelWidget.labelPaint.color="@color/domain_label"
+        androidPlot.domainLabelWidget.labelPaint.color="@color/range_label"
+
+        androidPlot.domainLabelWidget.labelPaint.textSize="@dimen/domain_label_font_size"
+        androidPlot.rangeLabelWidget.labelPaint.textSize="@dimen/range_label_font_size"
+        androidPlot.graphWidget.domainLabelPaint.textSize="@dimen/domain_tick_label_font_size"
+        androidPlot.graphWidget.rangeLabelPaint.textSize="@dimen/range_tick_label_font_size"
+        />
+
+
+</LinearLayout>

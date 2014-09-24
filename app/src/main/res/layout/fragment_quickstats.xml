@@ -1,0 +1,175 @@
+<TableLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:weightSum="100"
+    >
+
+    <TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/chart_table_row"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_weight="40"
+              android:weightSum="100"
+              android:clickable="true"
+              android:background="@android:drawable/list_selector_background">
+
+
+        <view
+            class="com.znasibov.powerstats.QuickStatsFragment$QuickStatsPlot"
+            android:id="@+id/quickstats_plot"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_column="0"
+            android:layout_span="2"
+            android:layout_weight="45"
+
+            android:layerType="hardware"
+            androidPlot.legendWidget.visible="false"
+
+            androidPlot.graphWidget.paddingTop="@dimen/quickstats_plot_padding_top"
+            androidPlot.graphWidget.paddingRight="@dimen/quickstats_plot_padding_right"
+            androidPlot.graphWidget.paddingBottom="@dimen/quickstats_plot_padding_bottom"
+            androidPlot.graphWidget.paddingLeft="@dimen/quickstats_plot_padding_left"
+
+            androidPlot.graphWidget.backgroundPaint.color="@color/plot_graph_background"
+            androidPlot.graphWidget.gridBackgroundPaint.color="@color/plot_grid_background"
+            androidPlot.backgroundPaint.color="@color/plot_background"
+            androidPlot.borderPaint.color="@color/plot_border"
+            androidPlot.graphWidget.domainLabelPaint.color="@color/domain_tick_label"
+            androidPlot.graphWidget.rangeLabelPaint.color="@color/range_tick_label"
+            androidPlot.rangeLabelWidget.labelPaint.color="@color/domain_label"
+            androidPlot.domainLabelWidget.labelPaint.color="@color/range_label"
+
+            androidPlot.domainLabelWidget.labelPaint.textSize="@dimen/domain_label_font_size"
+            androidPlot.rangeLabelWidget.labelPaint.textSize="@dimen/range_label_font_size"
+            androidPlot.graphWidget.domainLabelPaint.textSize="@dimen/domain_tick_label_font_size"
+            androidPlot.graphWidget.rangeLabelPaint.textSize="@dimen/range_tick_label_font_size"
+
+            androidPlot.domainLabel="@string/title_chart_axis_time"
+            androidPlot.rangeLabel="@string/title_chart_axis_level"
+            />
+
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:layout_weight="10"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_action_next_item"/>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/timestamp_table_row"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="10"
+        android:weightSum="100"
+        android:clickable="true"
+        android:background="@android:drawable/list_selector_background">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/timestamp_image"
+            android:src="@drawable/ic_action_time"
+            android:layout_column="0"
+            android:layout_weight="10"
+            android:layout_gravity="center_vertical"/>
+
+        <TextView
+            android:id="@+id/timestamp_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_weight="80"
+            android:layout_gravity="center_vertical"
+            android:singleLine="true"
+            style="@android:style/TextAppearance.Medium"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:layout_weight="10"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_action_next_item"/>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/battery_table_row"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="10"
+        android:weightSum="100"
+        android:clickable="true"
+        android:background="@android:drawable/list_selector_background">
+
+        <ImageView
+            android:id="@+id/battery_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_weight="10"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_action_battery"/>
+
+        <TextView
+            android:id="@+id/battery_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_weight="80"
+            android:layout_gravity="center_vertical"
+            style="@android:style/TextAppearance.Medium"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:layout_weight="10"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_action_next_item"
+            android:cropToPadding="false"/>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/wifi_table_row"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="10"
+        android:weightSum="100"
+        android:clickable="true"
+        android:background="@android:drawable/list_selector_background">
+
+        <ImageView
+            android:id="@+id/wifi_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_network_wifi"
+            android:layout_column="0"
+            android:layout_weight="10"
+            android:layout_gravity="center_vertical"/>
+
+        <TextView
+            android:id="@+id/wifi_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_weight="80"
+            android:layout_gravity="center_vertical"
+            style="@android:style/TextAppearance.Medium"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:layout_weight="10"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_action_next_item"
+            android:cropToPadding="false"/>
+    </TableRow>
+</TableLayout>
