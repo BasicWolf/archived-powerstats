@@ -29,12 +29,27 @@ public class UserPreferences {
         putBoolean("PowerStatsPlotSmoothScrollingEnabled", value);
     }
 
+    public static long getPowerStatsPlotDefaultDomainSize() {
+        return instance.prefs.getLong("PowerStatsPlotDefaultDomainSize", Util.hoursToMs(12));
+    }
+
+    public static void setPowerStatsPlotDefaultDomainSize(long value) {
+        putLong("PowerStatsPlotDefaultDomainSize", value);
+    }
+
     public static void beginEdit() {
         instance.editing = true;
     }
 
     public static void endEdit() {
         getEditor().commit();
+    }
+
+    public static void putLong(String key, long value) {
+        getEditor().putLong(key, value);
+        if (!instance.editing) {
+            getEditor().apply();
+        }
     }
 
     public static void putBoolean(String key, boolean value) {

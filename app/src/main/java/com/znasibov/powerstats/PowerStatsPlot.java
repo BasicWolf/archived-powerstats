@@ -9,7 +9,6 @@ import android.graphics.Shader;
 import android.os.Handler;
 import android.text.format.DateFormat;
 import android.util.FloatMath;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -35,6 +34,7 @@ import java.util.Locale;
 
 public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
     private static final int DOMAIN_STEPS_COUNT = 5;
+    private static final long MIN_DOMAIN_BOUNDARIES_LENGTH = Util.hoursToMs(1);
 
     private float leftBoundary = 0f;
     private float rightBoundary = 0f;
@@ -52,9 +52,11 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
     }
 
     private void initPlot() {
+        // TODO: try moving these to XML
         getGraphWidget().setRangeLabelHorizontalOffset(0);
         getGraphWidget().getRangeLabelPaint().setTextAlign(Paint.Align.LEFT);
 
+        // TODO: name the constatnts
         setRangeBoundaries(-5 + -10 * statRenderers.size(), 100, BoundaryMode.FIXED);
         setUserRangeOrigin(0);
         setRangeStep(XYStepMode.INCREMENT_BY_VAL, 10);
@@ -63,9 +65,9 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
         setDomainValueFormat(new Format() {
             String timePattern; {
                 if (DateFormat.is24HourFormat(getContext())) {
-                    timePattern = "h:m a";
+                    timePattern = "HH:mm";
                 } else {
-                    timePattern = "H:m";
+                    timePattern = "hh:mm a";
                 }
             }
 
@@ -170,9 +172,9 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
 
         rightBoundary = records.get(records.size() - 1).getTimestamp();
         leftBoundary = records.get(0).getTimestamp();
-        // TODO: configure, how much time should we set here
+
         float rightBound = records.get(records.size() - 1).getTimestamp();
-        float leftBound = rightBound - Util.hoursToMs(3);
+        float leftBound = rightBound - UserPreferences.getPowerStatsPlotDefaultDomainSize();
         setDomainBoundaries(leftBound, rightBound);
 
         renderBatteryLevelPlot(records);
@@ -319,6 +321,11 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
         float offset = domainSpan * scale / 2.0f;
         float newLeftBound = domainMidPoint - offset;
         float newRightBound = domainMidPoint + offset;
+
+        // restrict zooming further
+        if (newRightBound - newLeftBound < MIN_DOMAIN_BOUNDARIES_LENGTH) {
+            return;
+        }
 
         if (newLeftBound < leftBoundary) {
             newLeftBound = leftBoundary;
