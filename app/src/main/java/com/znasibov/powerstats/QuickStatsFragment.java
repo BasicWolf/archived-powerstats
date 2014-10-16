@@ -149,7 +149,7 @@ public class QuickStatsFragment extends Fragment
         SpannableString row1 = new SpannableString(
                 String.format("%.1f %% - %s\n",
                               p.getBatteryValue(),
-                              p.getStatusAsString(getActivity())));
+                              p.getBatteryStatusAsString()));
         SpannableString row2 = new SpannableString(
                 String.format("%s|%d° C|%d mV",
                               p.healthToString(),
@@ -162,8 +162,7 @@ public class QuickStatsFragment extends Fragment
     }
 
     void updateWifiText(PowerRecord p) {
-        SpannableString row1 = new SpannableString(
-                p.getWifiStateAsString(getActivity()));
+        SpannableString row1 = new SpannableString(p.getWifiStateAsString());
         wifiInfoText.setText(row1);
     }
 

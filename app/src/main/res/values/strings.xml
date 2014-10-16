@@ -6,16 +6,32 @@
     <string name="title_stats_updated_at">Updated at %s</string>
     <string name="action_settings">Settings</string>
 
+    <string name="state_on">On</string>
+    <string name="state_off">Off</string>
+    <string name="state_unknown">Unknown</string>
+
     <string name="title_battery">Battery</string>
     <string name="battery_status_charging">Charging</string>
     <string name="battery_status_discharging">Discharging</string>
     <string name="battery_status_not_charging">Not charging</string>
     <string name="battery_status_full">Full</string>
-    <string name="battery_status_unknown">Unknown</string>
+    <string name="battery_status_unknown">@string/state_unknown</string>
 
-    <string name="wifi_state_enabled">On</string>
-    <string name="wifi_state_disabled">Off</string>
-    <string name="wifi_state_unknown">Unknown</string>
+    <string name="wifi_state_enabled">@string/state_on</string>
+    <string name="wifi_state_disabled">@string/state_off</string>
+    <string name="wifi_state_unknown">@string/state_unknown</string>
+
+    <string name="phone_service_state_on">@string/state_on</string>
+    <string name="phone_service_state_off">@string/state_off</string>
+    <string name="phone_service_state_unknown">@string/state_unknown</string>
+
+    <string name="screen_state_on">@string/state_on</string>
+    <string name="screen_state_off">@string/state_off</string>
+    <string name="screen_state_unknown">@string/state_unknown</string>
+
+    <string name="gps_state_on">@string/state_on</string>
+    <string name="gps_state_off">@string/state_off</string>
+    <string name="gps_state_unknown">@string/state_unknown</string>
 
     <string name="title_chart_axis_time">Time</string>
     <string name="title_chart_axis_level">Battery level</string>

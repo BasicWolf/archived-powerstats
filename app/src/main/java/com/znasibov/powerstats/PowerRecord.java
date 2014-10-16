@@ -2,10 +2,9 @@ package com.znasibov.powerstats;
 
 
 import android.content.Context;
-import android.content.Intent;
+import android.location.GpsStatus;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
-import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.text.TextUtils;
 
@@ -48,6 +47,10 @@ public class PowerRecord {
     public static final int SCREEN_ON = 1;
     public static final int SCREEN_OFF = 0;
 
+    // GPS
+    public static final int GPS_STATE_ON = GpsStatus.GPS_EVENT_STARTED;
+    public static final int GPS_STATE_OFF = GpsStatus.GPS_EVENT_STOPPED;
+
     // -- Fields -- //
     private long timestamp;
 
@@ -65,6 +68,7 @@ public class PowerRecord {
     private int wifiState = UNKNOWN;
     private int phoneServiceState = UNKNOWN;
     private int screenState = UNKNOWN;
+    private int gpsState = UNKNOWN;
 
     private boolean dirty = false;
     private boolean readingFromDatabase = false;
@@ -74,7 +78,7 @@ public class PowerRecord {
         String[] labels = new String[] {
             "Battery: ",
             String.format("Present: %b", batteryPresent),
-            String.format("Charging: %s", getStatusAsString(context)),
+            String.format("Charging: %s", getBatteryStatusAsString()),
             String.format("Scale: %d", batteryScale),
             String.format("Level: %d", batteryLevel),
             String.format("Voltage: %d", batteryVoltage),
@@ -82,8 +86,11 @@ public class PowerRecord {
             String.format("Power source: %s", powerSourceToString()),
             String.format("Health: %s", healthToString()),
             String.format("Technology: %s", batteryTechnology),
-            "Wifi: ",
-            String.format("State: %s", getWifiStateAsString(context)),
+
+            String.format("Wifi: %s", getWifiStateAsString()),
+            String.format("Phone: %s", getPhoneServiceStateAsString()),
+            String.format("Screen: %s", getScreenStateAsString()),
+            String.format("GPS: %s", getGpsStateAsString()),
         };
 
         return "Power record (" +
@@ -114,7 +121,7 @@ public class PowerRecord {
         }
     }
 
-    public String powerSourceToString() {
+    private String powerSourceToString() {
         switch (batteryPowerSource) {
             case 0:
                 return "battery";
@@ -130,7 +137,8 @@ public class PowerRecord {
         }
     }
 
-    public String getStatusAsString(Context context) {
+    public String getBatteryStatusAsString() {
+        Context context = PowerStatsApplication.getAppContext();
         switch (batteryStatus) {
             case BATTERY_STATUS_CHARGING:
                 return context.getString(R.string.battery_status_charging);
@@ -148,7 +156,8 @@ public class PowerRecord {
 
     }
 
-    public String getWifiStateAsString(Context context) {
+    public String getWifiStateAsString() {
+        Context context = PowerStatsApplication.getAppContext();
         switch (wifiState) {
             case WIFI_STATE_ENABLED:
                 return context.getString(R.string.wifi_state_enabled);
@@ -160,6 +169,46 @@ public class PowerRecord {
                 return context.getString(R.string.wifi_state_unknown);
         }
     }
+
+    public String getPhoneServiceStateAsString() {
+        Context context = PowerStatsApplication.getAppContext();
+        switch (phoneServiceState) {
+            case PHONE_SERVICE_POWER_ON:
+                return context.getString(R.string.phone_service_state_on);
+            case PHONE_SERVICE_POWER_OFF:
+                return context.getString(R.string.phone_service_state_off);
+            case UNKNOWN:
+            default:
+                return context.getString(R.string.phone_service_state_unknown);
+        }
+    }
+
+    public String getScreenStateAsString() {
+        Context context = PowerStatsApplication.getAppContext();
+        switch (screenState) {
+            case SCREEN_ON:
+                return context.getString(R.string.screen_state_on);
+            case SCREEN_OFF:
+                return context.getString(R.string.screen_state_off);
+            case UNKNOWN:
+            default:
+                return context.getString(R.string.screen_state_unknown);
+        }
+    }
+
+    public String getGpsStateAsString() {
+        Context context = PowerStatsApplication.getAppContext();
+        switch (gpsState) {
+            case GPS_STATE_ON:
+                return context.getString(R.string.gps_state_on);
+            case GPS_STATE_OFF:
+                return context.getString(R.string.gps_state_off);
+            case UNKNOWN:
+            default:
+                return context.getString(R.string.gps_state_unknown);
+        }
+    }
+
 
     public void clean() {
         dirty = false;
@@ -174,10 +223,6 @@ public class PowerRecord {
         if (!readingFromDatabase) {
             updateTimestamp();
         }
-    }
-
-    public boolean isReadingFromDatabase() {
-        return readingFromDatabase;
     }
 
     public void setReadingFromDatabase(boolean readingFromDatabase) {
@@ -202,9 +247,9 @@ public class PowerRecord {
         phoneServiceState = p.phoneServiceState;
         wifiState = p.wifiState;
         screenState = p.screenState;
+        gpsState = p.gpsState;
         dirty = p.dirty;
     }
-
 
     public PowerRecord copy() {
         return new PowerRecord(this);
@@ -220,7 +265,8 @@ public class PowerRecord {
                 batteryScale != UNKNOWN &&
                 phoneServiceState != UNKNOWN &&
                 wifiState != UNKNOWN &&
-                screenState != UNKNOWN;
+                screenState != UNKNOWN &&
+                gpsState != UNKNOWN;
     }
 
     private void updateTimestamp() {
@@ -383,5 +429,15 @@ public class PowerRecord {
         this.screenState = screenState;
     }
 
+    public int getGpsState() {
+        return gpsState;
+    }
+
+    public void setGpsState(int gpsState) {
+        if (this.gpsState != gpsState) {
+            setDirty();
+        }
+        this.gpsState = gpsState;
+    }
 
 }

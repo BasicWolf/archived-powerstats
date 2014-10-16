@@ -3,6 +3,7 @@ package com.znasibov.powerstats;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.io.File;
 import java.text.MessageFormat;
@@ -13,7 +14,7 @@ public class PowerStatsDatabase {
     public static final boolean DEBUG_FORCE_RESET_DATABSE = false;
 
     public static final String DB_NAME = "records.db";
-    public static final int DB_VERSION = 3;
+    public static final int DB_VERSION = 4;
 
     static final String TABLE_RECORDS = "records";
     static final String TABLE_PROPERTIES = "properties";
@@ -37,6 +38,7 @@ public class PowerStatsDatabase {
     static final String COL_PHONE_SERVICE_STATE = "phone_service_state";
     static final String COL_WIFI_STATE = "wifi_state";
     static final String COL_SCREEN_STATE = "screen_state";
+    static final String COL_GPS_STATE = "gps_state";
 
     SQLiteDatabase mDb;
     String mPath;
@@ -73,13 +75,16 @@ public class PowerStatsDatabase {
         if (version != DB_VERSION) {
             initUpgraders();
             for (int i = version; i < DB_VERSION; i++) {
-                dbUpgraders.get(i).upgrade(this);
+                if (dbUpgraders.containsKey(i)) {
+                    dbUpgraders.get(i).upgrade(this);
+                }
             }
         }
     }
 
     private void initUpgraders() {
         dbUpgraders.put(2, new DatabaseUpgrader2to3());
+        dbUpgraders.put(3, new DatabaseUpgrader3to4());
     }
 
     public void create() {
@@ -119,24 +124,26 @@ public class PowerStatsDatabase {
         q.append(COL_BATTERY_VOLTAGE + " INTEGER, ");
         q.append(COL_PHONE_SERVICE_STATE + " INTEGER, ");
         q.append(COL_WIFI_STATE + " INTEGER, ");
-        q.append(COL_SCREEN_STATE + " INTEGER");
+        q.append(COL_SCREEN_STATE + " INTEGER, ");
+        q.append(COL_GPS_STATE + " INTEGER");
         q.append(")");
         mDb.execSQL(q.toString());
     }
 
-    public void insert(PowerRecord powerRecord) {
+    public void insert(PowerRecord r) {
         ContentValues values = new ContentValues();
-        values.put(COL_TIMESTAMP, powerRecord.getTimestamp());
-        values.put(COL_BATTERY_STATUS, powerRecord.getBatteryStatus());
-        values.put(COL_BATTERY_HEALTH, powerRecord.getBatteryHealth());
-        values.put(COL_BATTERY_LEVEL, powerRecord.getBatteryLevel());
-        values.put(COL_BATTERY_POWER_SOURCE, powerRecord.getBatteryPowerSource());
-        values.put(COL_BATTERY_SCALE, powerRecord.getBatteryScale());
-        values.put(COL_BATTERY_TEMPERATURE, powerRecord.getBatteryTemperature());
-        values.put(COL_BATTERY_VOLTAGE, powerRecord.getBatteryVoltage());
-        values.put(COL_PHONE_SERVICE_STATE, powerRecord.getPhoneServiceState());
-        values.put(COL_WIFI_STATE, powerRecord.getWifiState());
-        values.put(COL_SCREEN_STATE, powerRecord.getScreenState());
+        values.put(COL_TIMESTAMP, r.getTimestamp());
+        values.put(COL_BATTERY_STATUS, r.getBatteryStatus());
+        values.put(COL_BATTERY_HEALTH, r.getBatteryHealth());
+        values.put(COL_BATTERY_LEVEL, r.getBatteryLevel());
+        values.put(COL_BATTERY_POWER_SOURCE, r.getBatteryPowerSource());
+        values.put(COL_BATTERY_SCALE, r.getBatteryScale());
+        values.put(COL_BATTERY_TEMPERATURE, r.getBatteryTemperature());
+        values.put(COL_BATTERY_VOLTAGE, r.getBatteryVoltage());
+        values.put(COL_PHONE_SERVICE_STATE, r.getPhoneServiceState());
+        values.put(COL_WIFI_STATE, r.getWifiState());
+        values.put(COL_SCREEN_STATE, r.getScreenState());
+        values.put(COL_GPS_STATE, r.getGpsState());
         mDb.insert(TABLE_RECORDS, null, values);
     }
 
@@ -195,21 +202,22 @@ public class PowerStatsDatabase {
     }
 
     private PowerRecord cursorToBatteryInfo(Cursor c) {
-        PowerRecord p = new PowerRecord();
-        p.setReadingFromDatabase(true);
-        p.setTimestamp(c.getLong(1));
-        p.setBatteryStatus(c.getInt(2));
-        p.setBatteryHealth(c.getInt(3));
-        p.setBatteryLevel(c.getInt(4));
-        p.setBatteryPowerSource(c.getInt(5));
-        p.setBatteryScale(c.getInt(6));
-        p.setBatteryTemperature(c.getInt(7));
-        p.setBatteryVoltage(c.getInt(8));
-        p.setPhoneServiceState(c.getInt(9));
-        p.setWifiState(c.getInt(10));
-        p.setScreenState(c.getInt(11));
-        p.setReadingFromDatabase(false);
-        return p;
+        PowerRecord r = new PowerRecord();
+        r.setReadingFromDatabase(true);
+        r.setTimestamp(c.getLong(1));
+        r.setBatteryStatus(c.getInt(2));
+        r.setBatteryHealth(c.getInt(3));
+        r.setBatteryLevel(c.getInt(4));
+        r.setBatteryPowerSource(c.getInt(5));
+        r.setBatteryScale(c.getInt(6));
+        r.setBatteryTemperature(c.getInt(7));
+        r.setBatteryVoltage(c.getInt(8));
+        r.setPhoneServiceState(c.getInt(9));
+        r.setWifiState(c.getInt(10));
+        r.setScreenState(c.getInt(11));
+        r.setGpsState(c.getInt(12));
+        r.setReadingFromDatabase(false);
+        return r;
     }
 
     public boolean exists() {
@@ -254,6 +262,23 @@ class DatabaseUpgrader2to3 implements DatabaseUpgrader {
         StringBuilder q = new StringBuilder();
         q.append("ALTER TABLE " + db.TABLE_RECORDS + " ");
         q.append(" ADD COLUMN " + db.COL_SCREEN_STATE + " INTEGER");
+        db.getDb().execSQL(q.toString());
+        db.setProperty(db.PROPERTY_VERSION, "" + getNewVersion());
+    }
+}
+
+class DatabaseUpgrader3to4 implements DatabaseUpgrader {
+
+    @Override
+    public int getNewVersion() {
+        return 4;
+    }
+
+    @Override
+    public void upgrade(PowerStatsDatabase db) {
+        StringBuilder q = new StringBuilder();
+        q.append("ALTER TABLE " + db.TABLE_RECORDS + " ");
+        q.append(" ADD COLUMN " + db.COL_GPS_STATE + " INTEGER");
         db.getDb().execSQL(q.toString());
         db.setProperty(db.PROPERTY_VERSION, "" + getNewVersion());
     }

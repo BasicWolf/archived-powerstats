@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.GpsStatus;
+import android.location.LocationManager;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Binder;
@@ -47,7 +49,7 @@ public class PowerStatsLoggerService extends Service {
         database = new PowerStatsDatabase(dbPath);
         powerStatsReceivers = new LinkedHashSet<PowerStatsReceiver>();
         registerReceivers();
-        retrieveLatestData();
+        updateWithLatestData();
     }
 
     private String getAppDatabasePath() {
@@ -65,35 +67,59 @@ public class PowerStatsLoggerService extends Service {
                          new IntentFilter(Intent.ACTION_SCREEN_ON));
         registerReceiver(screenStateReceiver,
                          new IntentFilter(Intent.ACTION_SCREEN_OFF));
+
         telephony = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         telephony.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_SERVICE_STATE);
+
+        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        lm.addGpsStatusListener(gpsStatusLListener);
+
     }
 
-    private void retrieveLatestData() {
-        Intent intent;
+    private void updateWithLatestData() {
+        updateBatteryStateWithLatestData();
+        updateWifiStateWithLatestData();
+        updateScreenStateWithLatestData();
+        updateGpsStateWithLatestData();
+    }
 
-        intent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+    private void updateBatteryStateWithLatestData() {
+        Intent intent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         updateBatteryState(intent);
+    }
 
+    private void updateWifiStateWithLatestData() {
         WifiManager wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
-        intent = new Intent();
+        Intent intent = new Intent();
         intent.putExtra(WifiManager.EXTRA_WIFI_STATE, wifiManager.getWifiState());
         updateWifiState(intent);
+    }
 
+    private void updateScreenStateWithLatestData() {
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        intent = new Intent();
+        Intent intent = new Intent();
         intent.setAction(powerManager.isScreenOn() ? Intent.ACTION_SCREEN_ON : Intent.ACTION_SCREEN_OFF);
         updateScreenState(intent);
     }
 
-    BroadcastReceiver batteryStateReceiver = new BroadcastReceiver() {
+    private void updateGpsStateWithLatestData() {
+        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean gpsOn = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (gpsOn) {
+            updateGpsState(GpsStatus.GPS_EVENT_STARTED);
+        } else {
+            updateGpsState(GpsStatus.GPS_EVENT_STOPPED);
+        }
+    }
+
+    private BroadcastReceiver batteryStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             updateBatteryState(intent);
         }
     };
 
-    BroadcastReceiver screenStateReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver screenStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             updateScreenState(intent);
@@ -104,6 +130,20 @@ public class PowerStatsLoggerService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             updateWifiState(intent);
+        }
+    };
+
+    private GpsStatus.Listener gpsStatusLListener = new android.location.GpsStatus.Listener() {
+        public void onGpsStatusChanged(int event)
+        {
+            switch(event) {
+                case GpsStatus.GPS_EVENT_STARTED:
+                    updateGpsState(GpsStatus.GPS_EVENT_STARTED);
+                    break;
+                case GpsStatus.GPS_EVENT_STOPPED:
+                    updateGpsState(GpsStatus.GPS_EVENT_STOPPED);
+                    break;
+            }
         }
     };
 
@@ -180,6 +220,20 @@ public class PowerStatsLoggerService extends Service {
         recordChanged();
     }
 
+    private void updateGpsState(int gpsStatus) {
+        switch (gpsStatus) {
+            case GpsStatus.GPS_EVENT_STARTED:
+                pr.setGpsState(PowerRecord.GPS_STATE_ON);
+                break;
+            case GpsStatus.GPS_EVENT_STOPPED:
+                pr.setGpsState(PowerRecord.GPS_STATE_OFF);
+                break;
+            default:
+                // should not happen, so don't invoke recordChange() if happened.
+                return;
+        }
+        recordChanged();
+    }
     private void recordChanged() {
         if (pr.isDirty() && pr.isReadyForRecording()) {
             storeRecordToDatabase();

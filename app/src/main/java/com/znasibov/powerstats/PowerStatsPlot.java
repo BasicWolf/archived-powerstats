@@ -9,6 +9,7 @@ import android.graphics.Shader;
 import android.os.Handler;
 import android.text.format.DateFormat;
 import android.util.FloatMath;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -476,11 +477,11 @@ final class WifiRenderer extends OnOffStatRenderer {
 
     @Override
     int getColorResourceId() {
-        return R.color.plot_phone_service_on;
+        return R.color.plot_wifi_enabled;
     }
 }
 
-final class GpsRenderer extends StatRenderer {
+final class GpsRenderer extends OnOffStatRenderer {
     public GpsRenderer(PowerStatsPlot plot) {
         super(plot);
     }
@@ -489,8 +490,14 @@ final class GpsRenderer extends StatRenderer {
         return "GPS";
     }
 
-    public void render(ArrayList<PowerRecord> records) {
+    @Override
+    boolean isOn(PowerRecord r) {
+        return r.getGpsState() == PowerRecord.GPS_STATE_ON;
+    }
 
+    @Override
+    int getColorResourceId() {
+        return R.color.plot_gps_on;
     }
 }
 

@@ -161,9 +161,10 @@ public class PowerRecordTest {
         p.setBatteryVoltage(1000);
         p.setPhoneServiceState(PowerRecord.PHONE_SERVICE_POWER_ON);
         p.setScreenState(PowerRecord.SCREEN_OFF);
+        p.setWifiState(PowerRecord.WIFI_STATE_ENABLED);
         assertFalse(p.isReadyForRecording());
 
-        p.setWifiState(PowerRecord.WIFI_STATE_ENABLED);
+        p.setGpsState(PowerRecord.GPS_STATE_OFF);
         assertTrue(p.isReadyForRecording());
     }
 

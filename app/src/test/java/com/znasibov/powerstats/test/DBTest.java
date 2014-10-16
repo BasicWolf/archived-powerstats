@@ -44,6 +44,7 @@ public class DBTest {
         record.setPhoneServiceState(PowerRecord.PHONE_SERVICE_POWER_ON);
         record.setWifiState(PowerRecord.WIFI_STATE_ENABLED);
         record.setScreenState(PowerRecord.SCREEN_OFF);
+        record.setGpsState(PowerRecord.GPS_STATE_OFF);
         return record;
     }
 
@@ -147,7 +148,7 @@ public class DBTest {
 
     @Test
     public void testGetCorrectVersion() throws Exception {
-        assertEquals(3, db.getVersion());
+        assertEquals(4, db.getVersion());
     }
 
     @Test
