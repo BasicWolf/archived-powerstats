@@ -17,7 +17,7 @@ public class MainActivity extends Activity {
 
         // Set up the action bar to show a dropdown list.
         final ActionBar actionBar = getActionBar();
-//        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(true);
 
 //        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 //
