@@ -19,21 +19,6 @@ public class MainActivity extends Activity {
         final ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
 
-//        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-//
-//        // Set up the dropdown list navigation in the action bar.
-//        actionBar.setListNavigationCallbacks(
-//                // Specify a SpinnerAdapter to populate the dropdown list.
-//                new ArrayAdapter<String>(
-//                        actionBar.getThemedContext(),
-//                        android.R.layout.simple_list_item_1,
-//                        android.R.id.text1,
-//                        new String[] {
-//                                getString(R.string.title_section1),
-//                                getString(R.string.title_section2),
-//                                getString(R.string.title_section3),
-//                        }),
-//                this);
         getFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new QuickStatsFragment())
                 .commit();

@@ -1,5 +1,7 @@
 package com.znasibov.powerstats;
 
+import android.app.ActionBar;
+import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +18,7 @@ import android.app.FragmentTransaction;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -39,7 +42,7 @@ import java.text.ParsePosition;
 import java.util.ArrayList;
 
 public class QuickStatsFragment extends Fragment
-        implements ServiceConnection, PowerStatsReceiver{
+        implements FragmentManager.OnBackStackChangedListener, ServiceConnection, PowerStatsReceiver{
     private final long CHART_UPDATE_PERIOD_MS = Util.minutesToMs(1);
 
     PowerStatsLoggerService pslService;
@@ -57,6 +60,13 @@ public class QuickStatsFragment extends Fragment
     public QuickStatsFragment() {
         lastChartPowerRecord = new PowerRecord();
         resetChartUpdatedTimestamp();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        getFragmentManager().addOnBackStackChangedListener(this);
+        maybeHideDisplayHomeAsUpEnabled();
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -90,6 +100,18 @@ public class QuickStatsFragment extends Fragment
 //            quickStatsPlot.render(new PowerRecord[0]);
 //        }
         return view;
+    }
+
+    @Override
+    public void onBackStackChanged() {
+        maybeHideDisplayHomeAsUpEnabled();
+    }
+
+    private void maybeHideDisplayHomeAsUpEnabled() {
+        ActionBar actionBar = getActivity().getActionBar();
+        if (getFragmentManager().getBackStackEntryCount() == 0) {
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
     }
 
     @Override
