@@ -57,7 +57,7 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
         getGraphWidget().setRangeLabelHorizontalOffset(0);
         getGraphWidget().getRangeLabelPaint().setTextAlign(Paint.Align.LEFT);
 
-        // TODO: name the constatnts
+        // TODO: name the constants
         setRangeBoundaries(-5 + -10 * statRenderers.size(), 100, BoundaryMode.FIXED);
         setUserRangeOrigin(0);
         setRangeStep(XYStepMode.INCREMENT_BY_VAL, 10);
