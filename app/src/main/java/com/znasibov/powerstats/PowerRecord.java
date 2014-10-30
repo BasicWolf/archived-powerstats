@@ -370,9 +370,6 @@ public class PowerRecord {
     }
 
     public void setBatteryTemperature(int batteryTemperature) {
-        if (this.batteryTemperature != batteryTemperature) {
-            setDirty();
-        }
         this.batteryTemperature = batteryTemperature;
     }
 
@@ -382,11 +379,9 @@ public class PowerRecord {
     }
 
     public void setBatteryVoltage(int batteryVoltage) {
-        if (this.batteryVoltage != batteryVoltage) {
-            setDirty();
-        }
         this.batteryVoltage = batteryVoltage;
     }
+
 
     public float getBatteryValue() {
         if (batteryScale > 0 && batteryLevel >= 0) {
@@ -395,6 +390,7 @@ public class PowerRecord {
             return 0;
         }
     }
+
 
     public int getWifiState() {
         return wifiState;

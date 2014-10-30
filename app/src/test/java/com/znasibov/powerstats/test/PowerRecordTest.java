@@ -1,20 +1,16 @@
 package com.znasibov.powerstats.test;
 
 
-import android.util.Log;
-
 import com.znasibov.powerstats.PowerRecord;
 
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.*;
 
-interface DirtyAction {
-    void performDirtyAction(PowerRecord p);
+interface PowerRecordModifier {
+    void modify(PowerRecord p);
 }
 
 
@@ -46,82 +42,89 @@ public class PowerRecordTest {
 
     @Test
     public void testDirtyOnSetters() throws Exception {
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setBatteryStatus(0);
             }
         });
 
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setBatteryHealth(0);
             }
         });
 
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setBatteryLevel(0);
             }
         });
 
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setBatteryPowerSource(0);
             }
         });
 
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setBatteryPresent(!p.getBatteryPresent());
             }
         });
 
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setBatteryScale(PowerRecord.DEFAULT_SCALE + 1);
             }
         });
 
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setBatteryTechnology(PowerRecord.DEFAULT_TECHNOLOGY + "_DIRTY");
             }
         });
 
-        isDirty(new DirtyAction() {
+        isDirty(new PowerRecordModifier() {
             @Override
-            public void performDirtyAction(PowerRecord p) {
-                p.setBatteryTemperature(0);
-            }
-        });
-
-        isDirty(new DirtyAction() {
-            @Override
-            public void performDirtyAction(PowerRecord p) {
-                p.setBatteryVoltage(0);
-            }
-        });
-
-        isDirty(new DirtyAction() {
-            @Override
-            public void performDirtyAction(PowerRecord p) {
+            public void modify(PowerRecord p) {
                 p.setWifiState(PowerRecord.WIFI_STATE_ENABLED);
             }
         });
     }
 
-    void isDirty(DirtyAction action) throws Exception {
-        isDirty(action, null);
+    @Test
+    public void testNotDirtyOnSetters() throws Exception {
+        isNotDirty(new PowerRecordModifier() {
+            @Override
+            public void modify(PowerRecord p) {
+                p.setBatteryTemperature(0);
+            }
+        });
+
+        isNotDirty(new PowerRecordModifier() {
+            @Override
+            public void modify(PowerRecord p) {
+                p.setBatteryVoltage(0);
+            }
+        });
     }
 
-    void isDirty(DirtyAction action, PowerRecord p) throws Exception{
+    void isDirty(PowerRecordModifier action) throws Exception {
+        isDirty(action, null, false);
+    }
+
+    void isNotDirty(PowerRecordModifier action) throws Exception {
+        isDirty(action, null, true);
+    }
+
+    void isDirty(PowerRecordModifier action, PowerRecord p, boolean not) throws Exception {
         if (p == null) {
             p = new PowerRecord();
         }
@@ -129,12 +132,19 @@ public class PowerRecordTest {
         long oldTimestamp = p.getTimestamp();
         Thread.sleep(10);
 
-        action.performDirtyAction(p);
+        action.modify(p);
 
         long newTimestamp = p.getTimestamp();
 
-        assertTrue(p.isDirty());
-        assertTrue(oldTimestamp != newTimestamp);
+        boolean shouldAssertTrue = !not;
+        if (shouldAssertTrue) {
+            assertTrue(p.isDirty());
+            assertTrue(oldTimestamp != newTimestamp);
+        } else {
+            assertFalse(p.isDirty());
+            assertFalse(oldTimestamp != newTimestamp);
+        }
+
     }
 
     @Test
@@ -157,8 +167,6 @@ public class PowerRecordTest {
         p.setBatteryPowerSource(PowerRecord.BATTERY_PLUGGED_AC);
         p.setBatteryPresent(true);
         p.setBatteryScale(100);
-        p.setBatteryTemperature(100);
-        p.setBatteryVoltage(1000);
         p.setPhoneServiceState(PowerRecord.PHONE_SERVICE_POWER_ON);
         p.setScreenState(PowerRecord.SCREEN_OFF);
         p.setWifiState(PowerRecord.WIFI_STATE_ENABLED);
