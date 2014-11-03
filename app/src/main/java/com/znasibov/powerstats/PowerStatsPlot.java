@@ -2,6 +2,7 @@ package com.znasibov.powerstats;
 
 import android.graphics.Color;
 import android.graphics.CornerPathEffect;
+import android.graphics.DashPathEffect;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.PointF;
@@ -53,12 +54,7 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
     }
 
     private void initPlot() {
-        // TODO: try moving these to XML
-        getGraphWidget().setRangeLabelHorizontalOffset(0);
-        getGraphWidget().getRangeLabelPaint().setTextAlign(Paint.Align.LEFT);
-
-        // TODO: name the constants
-        setRangeBoundaries(-5 + -10 * statRenderers.size(), 100, BoundaryMode.FIXED);
+        setRangeBoundaries(getLowerBoundary(), getUpperBoundary(), BoundaryMode.FIXED);
         setUserRangeOrigin(0);
         setRangeStep(XYStepMode.INCREMENT_BY_VAL, 10);
         setDomainStep(XYStepMode.SUBDIVIDE, DOMAIN_STEPS_COUNT);
@@ -148,6 +144,14 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
         });
     }
 
+    private int getUpperBoundary() {
+        return 105;
+    }
+
+    private int getLowerBoundary() {
+        return -5 + -10 * statRenderers.size();
+    }
+
     private void initStatRenderers() {
         statRenderers.add(new PhoneServiceRenderer(this));
         statRenderers.add(new WifiRenderer(this));
@@ -178,6 +182,7 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
         float leftBound = rightBound - UserPreferences.getPowerStatsPlotDefaultDomainSize();
         setDomainBoundaries(leftBound, rightBound);
 
+        renderDaySeparators(records);
         renderBatteryLevelPlot(records);
         renderBatteryCharging(records);
 
@@ -185,6 +190,38 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
             st.render(records);
         }
         redraw();
+    }
+
+    private void renderDaySeparators(ArrayList<PowerRecord> records) {
+        // VISUAL
+        LineAndPointFormatter formatter = new LineAndPointFormatter(
+                getResources().getColor(R.color.plot_day_separator), null, null, null);
+
+        Paint linePaint = formatter.getLinePaint();
+        linePaint.setStrokeWidth(getResources().getDimension(R.dimen.plot_bg_line_width));
+        linePaint.setPathEffect(new DashPathEffect(new float[]{10.0f, 5.0f}, 0));
+
+        // DATA
+        long firstTimestamp = records.get(0).getTimestamp();
+        long lastTimestamp = records.get(records.size() - 1).getTimestamp();
+
+        DateTime ts = new DateTime(firstTimestamp);
+        long daystamp = ts.dayOfWeek().roundHalfEvenCopy().getMillis();
+        long dayAsMillis = Util.daysToMs(1);
+
+        ArrayList<Number> values = new ArrayList<Number>();
+        for (long t = daystamp; t < lastTimestamp; t += dayAsMillis) {
+            values.add(t);
+            values.add(getUpperBoundary());
+            values.add(t);
+            values.add(getLowerBoundary());
+            values.add(t + 1);
+            values.add(null);
+        }
+
+        SimpleXYSeries series = new SimpleXYSeries("Day");
+        series.setModel(values, SimpleXYSeries.ArrayFormat.XY_VALS_INTERLEAVED);
+        addSeries(series, formatter);
     }
 
     private void renderBatteryLevelPlot(ArrayList<PowerRecord> records) {

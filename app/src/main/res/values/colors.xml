@@ -173,8 +173,12 @@
     <color name="plot_grid_background">@color/Transparent</color>
     <color name="plot_graph_background">@color/Transparent</color>
 
+    <color name="plot_day_separator">@color/CornflowerBlue</color>
+
     <color name="plot_phone_service_on">@color/MediumAquamarine</color>
     <color name="plot_wifi_enabled">@color/MediumAquamarine</color>
     <color name="plot_screen_on">@color/MediumAquamarine</color>
     <color name="plot_gps_on">@color/MediumAquamarine</color>
+
+
 </resources>

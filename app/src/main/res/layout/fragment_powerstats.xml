@@ -23,6 +23,9 @@
         androidPlot.graphWidget.paddingBottom="@dimen/plot_padding_bottom"
         androidPlot.graphWidget.paddingLeft="@dimen/plot_padding_left"
 
+        androidPlot.graphWidget.rangeLabelHorizontalOffset="-1"
+        androidPlot.graphWidget.rangeLabelPaint.textAlign="left"
+
         androidPlot.graphWidget.backgroundPaint.color="@color/plot_graph_background"
         androidPlot.graphWidget.gridBackgroundPaint.color="@color/plot_grid_background"
         androidPlot.backgroundPaint.color="@color/plot_background"

@@ -16,6 +16,7 @@
     <dimen name="plot_padding_bottom">2dp</dimen>
     <dimen name="plot_padding_left">2dp</dimen>
 
+    <dimen name="plot_bg_line_width">1dp</dimen>
     <dimen name="plot_line_width">4dp</dimen>
 
     <dimen name="plot_label_base_size">8sp</dimen>
