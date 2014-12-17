@@ -14,7 +14,7 @@ android {
     }
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
@@ -48,6 +48,7 @@ dependencies {
 
     compile 'net.danlew:android.joda:2.4.0'
     compile files('libs/androidplot-core-0.6.1.jar')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 apply plugin: 'idea'
