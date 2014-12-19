@@ -177,6 +177,7 @@
 
     <color name="plot_phone_service_on">@color/MediumAquamarine</color>
     <color name="plot_wifi_enabled">@color/MediumAquamarine</color>
+    <color name="plot_mobile_data_on">@color/MediumAquamarine</color>
     <color name="plot_screen_on">@color/MediumAquamarine</color>
     <color name="plot_gps_on">@color/MediumAquamarine</color>
 

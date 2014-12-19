@@ -155,6 +155,7 @@ public class PowerStatsPlot extends XYPlot implements View.OnTouchListener {
     private void initStatRenderers() {
         statRenderers.add(new PhoneServiceRenderer(this));
         statRenderers.add(new WifiRenderer(this));
+        statRenderers.add(new MobileDataRenderer(this));
         statRenderers.add(new GpsRenderer(this));
         statRenderers.add(new ScreenStateRenderer(this));
 
@@ -515,6 +516,26 @@ final class WifiRenderer extends OnOffStatRenderer {
     @Override
     int getColorResourceId() {
         return R.color.plot_wifi_enabled;
+    }
+}
+
+final class MobileDataRenderer extends OnOffStatRenderer {
+    public MobileDataRenderer(PowerStatsPlot plot) {
+        super(plot);
+    }
+
+    public String getLabel() {
+        return "Mobile data";
+    }
+
+    @Override
+    boolean isOn(PowerRecord r) {
+        return r.getMobileDataState() == PowerRecord.MOBILE_DATA_ON;
+    }
+
+    @Override
+    int getColorResourceId() {
+        return R.color.plot_mobile_data_on;
     }
 }
 

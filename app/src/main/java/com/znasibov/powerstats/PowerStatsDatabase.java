@@ -3,19 +3,22 @@ package com.znasibov.powerstats;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 
 public class PowerStatsDatabase {
+    /** Database configuration **/
+    public static final int DB_VERSION = 5;
+    public static final String DB_NAME = "records.db";
+
+    /** Control flags **/
     public static final boolean DEBUG_FORCE_RESET_DATABSE = false;
 
-    public static final String DB_NAME = "records.db";
-    public static final int DB_VERSION = 4;
 
+    /** Constants **/
     static final String TABLE_RECORDS = "records";
     static final String TABLE_PROPERTIES = "properties";
 
@@ -39,10 +42,12 @@ public class PowerStatsDatabase {
     static final String COL_WIFI_STATE = "wifi_state";
     static final String COL_SCREEN_STATE = "screen_state";
     static final String COL_GPS_STATE = "gps_state";
+    static final String COL_MOBILE_DATA_STATE = "mobile_data_state";
 
+    /** Locals **/
     SQLiteDatabase mDb;
     String mPath;
-    HashMap<Integer, DatabaseUpgrader> dbUpgraders = new HashMap<Integer, DatabaseUpgrader>();
+    HashSet<DatabaseUpgrader> dbUpgraders = new HashSet<DatabaseUpgrader>();
 
     public PowerStatsDatabase(String path) {
         createOrOpen(path);
@@ -71,20 +76,21 @@ public class PowerStatsDatabase {
     }
 
     private void upgradeIfNecessary() {
-        int version = getVersion();
-        if (version != DB_VERSION) {
-            initUpgraders();
-            for (int i = version; i < DB_VERSION; i++) {
-                if (dbUpgraders.containsKey(i)) {
-                    dbUpgraders.get(i).upgrade(this);
-                }
+        if (getVersion() == DB_VERSION) {
+            return;
+        }
+
+        initUpgraders();
+        for (DatabaseUpgrader du: dbUpgraders) {
+            if (du.canUpgradeTo(DB_VERSION)) {
+                du.upgrade(this);
             }
         }
     }
 
     private void initUpgraders() {
-        dbUpgraders.put(2, new DatabaseUpgrader2to3());
-        dbUpgraders.put(3, new DatabaseUpgrader3to4());
+        // dbUpgraders.put(3, new DatabaseUpgrader3to4());
+        dbUpgraders.add(new DatabaseUpgrader4to5());
     }
 
     public void create() {
@@ -125,7 +131,8 @@ public class PowerStatsDatabase {
         q.append(COL_PHONE_SERVICE_STATE + " INTEGER, ");
         q.append(COL_WIFI_STATE + " INTEGER, ");
         q.append(COL_SCREEN_STATE + " INTEGER, ");
-        q.append(COL_GPS_STATE + " INTEGER");
+        q.append(COL_GPS_STATE + " INTEGER, ");
+        q.append(COL_MOBILE_DATA_STATE + " INTEGER");
         q.append(")");
         mDb.execSQL(q.toString());
     }
@@ -144,6 +151,7 @@ public class PowerStatsDatabase {
         values.put(COL_WIFI_STATE, r.getWifiState());
         values.put(COL_SCREEN_STATE, r.getScreenState());
         values.put(COL_GPS_STATE, r.getGpsState());
+        values.put(COL_MOBILE_DATA_STATE, r.getMobileDataState());
         mDb.insert(TABLE_RECORDS, null, values);
     }
 
@@ -216,6 +224,7 @@ public class PowerStatsDatabase {
         r.setWifiState(c.getInt(10));
         r.setScreenState(c.getInt(11));
         r.setGpsState(c.getInt(12));
+        r.setMobileDataState(c.getInt(13));
         r.setReadingFromDatabase(false);
         return r;
     }
@@ -245,41 +254,45 @@ public class PowerStatsDatabase {
 
 }
 
-interface DatabaseUpgrader {
-    public int getNewVersion ();
-    public void upgrade(PowerStatsDatabase db);
+abstract class DatabaseUpgrader {
+    abstract public int getVersion();
+    abstract public void upgrade(PowerStatsDatabase db);
+
+    public boolean canUpgradeTo(int version) {
+        return getVersion() == version;
+    }
 }
 
-
-class DatabaseUpgrader2to3 implements DatabaseUpgrader {
+class DatabaseUpgrader4to5 extends DatabaseUpgrader {
     @Override
-    public int getNewVersion () {
-        return 3;
+    public int getVersion() {
+        return 5;
     }
 
     @Override
     public void upgrade(PowerStatsDatabase db) {
         StringBuilder q = new StringBuilder();
         q.append("ALTER TABLE " + db.TABLE_RECORDS + " ");
-        q.append(" ADD COLUMN " + db.COL_SCREEN_STATE + " INTEGER");
+        q.append(" ADD COLUMN " + db.COL_MOBILE_DATA_STATE + " INTEGER");
         db.getDb().execSQL(q.toString());
-        db.setProperty(db.PROPERTY_VERSION, "" + getNewVersion());
+        db.setProperty(db.PROPERTY_VERSION, "" + getVersion());
     }
 }
 
-class DatabaseUpgrader3to4 implements DatabaseUpgrader {
+//class DatabaseUpgrader3to4 implements DatabaseUpgrader {
+//
+//    @Override
+//    public int getVersion() {
+//        return 4;
+//    }
+//
+//    @Override
+//    public void upgrade(PowerStatsDatabase db) {
+//        StringBuilder q = new StringBuilder();
+//        q.append("ALTER TABLE " + db.TABLE_RECORDS + " ");
+//        q.append(" ADD COLUMN " + db.COL_GPS_STATE + " INTEGER");
+//        db.getDb().execSQL(q.toString());
+//        db.setProperty(db.PROPERTY_VERSION, "" + getVersion());
+//    }
+//}
 
-    @Override
-    public int getNewVersion() {
-        return 4;
-    }
-
-    @Override
-    public void upgrade(PowerStatsDatabase db) {
-        StringBuilder q = new StringBuilder();
-        q.append("ALTER TABLE " + db.TABLE_RECORDS + " ");
-        q.append(" ADD COLUMN " + db.COL_GPS_STATE + " INTEGER");
-        db.getDb().execSQL(q.toString());
-        db.setProperty(db.PROPERTY_VERSION, "" + getNewVersion());
-    }
-}

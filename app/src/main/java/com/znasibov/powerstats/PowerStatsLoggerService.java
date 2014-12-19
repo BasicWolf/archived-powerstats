@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.location.GpsStatus;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Binder;
@@ -21,14 +22,12 @@ import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 
 public class PowerStatsLoggerService extends Service {
     PowerRecord pr;
     IBinder binder;
-    Set<PowerStatsReceiver> powerStatsReceivers;
+    PowerRecordsListenerMixin prListener;
     PowerStatsDatabase database;
     TelephonyManager telephony;
 
@@ -43,6 +42,7 @@ public class PowerStatsLoggerService extends Service {
     public PowerStatsLoggerService() {
         pr = new PowerRecord();
         binder = new ServiceBinder();
+        prListener = new PowerRecordsListenerMixin();
     }
 
     @Override
@@ -50,7 +50,6 @@ public class PowerStatsLoggerService extends Service {
         String dbPath = getAppDatabasePath();
         Log.d("PowerStatsLoggerService", "Database path: " + dbPath);
         database = new PowerStatsDatabase(dbPath);
-        powerStatsReceivers = new LinkedHashSet<PowerStatsReceiver>();
         registerReceivers();
         updateWithLatestData();
     }
@@ -74,7 +73,7 @@ public class PowerStatsLoggerService extends Service {
                          new IntentFilter(Intent.ACTION_SCREEN_OFF));
 
         telephony = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        telephony.listen(new PhoneStateListener(), PhoneStateListener.LISTEN_SERVICE_STATE);
+        telephony.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_SERVICE_STATE);
 
         LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         lm.addGpsStatusListener(gpsStatusLListener);
@@ -86,6 +85,7 @@ public class PowerStatsLoggerService extends Service {
         updateWifiStateWithLatestData();
         updateScreenStateWithLatestData();
         updateGpsStateWithLatestData();
+        updateMobileDataWithLatestData();
     }
 
     private void updateBatteryStateWithLatestData() {
@@ -98,6 +98,26 @@ public class PowerStatsLoggerService extends Service {
         Intent intent = new Intent();
         intent.putExtra(WifiManager.EXTRA_WIFI_STATE, wifiManager.getWifiState());
         updateWifiState(intent);
+    }
+
+    private void updateMobileDataWithLatestData() {
+        Context context = PowerStatsApplication.getAppContext();
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        if (networkInfo != null) {
+            boolean connected = networkInfo.isConnectedOrConnecting();
+            boolean isMobile = networkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
+            Intent intent = new Intent();
+            intent.putExtra(ConnectivityManager.EXTRA_NETWORK_TYPE, ConnectivityManager.TYPE_MOBILE);
+            updateConnectivityState(intent);
+        } else {
+            Intent intent = new Intent();
+            updateConnectivityState(intent);
+        }
+
+
     }
 
     private void updateScreenStateWithLatestData() {
@@ -209,8 +229,21 @@ public class PowerStatsLoggerService extends Service {
 
     private void updateConnectivityState(Intent intent) {
         int networkType = intent.getIntExtra(ConnectivityManager.EXTRA_NETWORK_TYPE, UNKNOWN);
-        if (networkType == ConnectivityManager.TYPE_MOBILE) {
 
+        if (networkType == ConnectivityManager.TYPE_MOBILE) {
+            Context context = PowerStatsApplication.getAppContext();
+            ConnectivityManager cm =
+                    (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+            if (networkInfo != null) {
+                if (networkInfo.isConnectedOrConnecting()) {
+                    pr.setMobileDataState(PowerRecord.MOBILE_DATA_ON);
+                } else {
+                    pr.setMobileDataState(PowerRecord.MOBILE_DATA_OFF);
+                }
+                recordChanged();
+            }
         }
     }
 
@@ -255,7 +288,7 @@ public class PowerStatsLoggerService extends Service {
     private void recordChanged() {
         if (pr.isDirty() && pr.isReadyForRecording()) {
             storeRecordToDatabase();
-            notifyPowerStatsReceivers();
+            notifyPowerRecordsListeners();
         }
     }
 
@@ -270,8 +303,8 @@ public class PowerStatsLoggerService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("BatteryLogger", "Received start id " + startId + ": " + intent);
         /*
-        // We want this pslService to continue running until it is explicitly
-        // stopped, so return sticky.
+           We want this pslService to continue running until it is explicitly
+           stopped, so return sticky.
         */
         return START_STICKY;
     }
@@ -286,24 +319,21 @@ public class PowerStatsLoggerService extends Service {
         return binder;
     }
 
-    public void register(PowerStatsReceiver obj) {
-        powerStatsReceivers.add(obj);
+    public void subscribePowerRecordsListener(PowerRecordsListener obj) {
+        prListener.subscribe(obj);
 
         // Immediately notify new receiver if power record is ready
         if (pr.isReadyForRecording()) {
-            obj.onReceive(pr.copy());
+            notifyPowerRecordsListeners();
         }
     }
 
-    public void unregister(PowerStatsReceiver obj) {
-        powerStatsReceivers.remove(obj);
+    public void unsubscribePowerRecordListener(PowerRecordsListener obj) {
+        prListener.unsubscribe(obj);
     }
 
-    public void notifyPowerStatsReceivers() {
-        PowerRecord prCopy = pr.copy();
-        for (PowerStatsReceiver r : powerStatsReceivers) {
-            r.onReceive(prCopy);
-        }
+    public void notifyPowerRecordsListeners() {
+        prListener.notify(pr.copy());
     }
 
     public ArrayList<PowerRecord> getRecords(long periodMs) {

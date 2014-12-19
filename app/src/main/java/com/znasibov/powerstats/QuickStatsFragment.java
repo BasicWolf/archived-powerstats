@@ -18,7 +18,6 @@ import android.app.FragmentTransaction;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -42,7 +41,7 @@ import java.text.ParsePosition;
 import java.util.ArrayList;
 
 public class QuickStatsFragment extends Fragment
-        implements FragmentManager.OnBackStackChangedListener, ServiceConnection, PowerStatsReceiver{
+        implements FragmentManager.OnBackStackChangedListener, ServiceConnection, PowerRecordsListener {
     private final long CHART_UPDATE_PERIOD_MS = Util.minutesToMs(1);
 
     PowerStatsLoggerService pslService;
@@ -126,7 +125,7 @@ public class QuickStatsFragment extends Fragment
     public void onResume() {
         // Force the service to send the data to this object
         if (pslService != null) {
-            pslService.register(this);
+            pslService.subscribePowerRecordsListener(this);
         }
         super.onResume();
     }
@@ -134,7 +133,7 @@ public class QuickStatsFragment extends Fragment
     @Override
     public void onStop() {
         if (pslService != null) {
-            pslService.unregister(this);
+            pslService.unsubscribePowerRecordListener(this);
         }
         getActivity().getApplicationContext().unbindService(this);
         resetChartUpdatedTimestamp();
@@ -144,7 +143,7 @@ public class QuickStatsFragment extends Fragment
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder binder) {
         pslService = ((PowerStatsLoggerService.ServiceBinder)binder).getService();
-        pslService.register(this);
+        pslService.subscribePowerRecordsListener(this);
     }
 
     @Override
@@ -153,7 +152,7 @@ public class QuickStatsFragment extends Fragment
     }
 
     @Override
-    public void onReceive(PowerRecord p) {
+    public void recordReceived(PowerRecord p) {
         updateTimestampText(p);
         updateBatteryText(p);
         updateWifiText(p);
