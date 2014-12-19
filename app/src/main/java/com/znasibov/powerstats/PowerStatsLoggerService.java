@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.GpsStatus;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Binder;
@@ -30,6 +31,8 @@ public class PowerStatsLoggerService extends Service {
     Set<PowerStatsReceiver> powerStatsReceivers;
     PowerStatsDatabase database;
     TelephonyManager telephony;
+
+    static final int UNKNOWN = PowerRecord.UNKNOWN;
 
     public class ServiceBinder extends Binder {
         PowerStatsLoggerService getService() {
@@ -63,13 +66,15 @@ public class PowerStatsLoggerService extends Service {
                          new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         registerReceiver(wifiStateChangedReceiver,
                          new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        registerReceiver(connectivityStateChangedReceiver,
+                         new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         registerReceiver(screenStateReceiver,
                          new IntentFilter(Intent.ACTION_SCREEN_ON));
         registerReceiver(screenStateReceiver,
                          new IntentFilter(Intent.ACTION_SCREEN_OFF));
 
         telephony = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        telephony.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_SERVICE_STATE);
+        telephony.listen(new PhoneStateListener(), PhoneStateListener.LISTEN_SERVICE_STATE);
 
         LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         lm.addGpsStatusListener(gpsStatusLListener);
@@ -133,6 +138,13 @@ public class PowerStatsLoggerService extends Service {
         }
     };
 
+    private BroadcastReceiver connectivityStateChangedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateConnectivityState(intent);
+        }
+    };
+
     private GpsStatus.Listener gpsStatusLListener = new android.location.GpsStatus.Listener() {
         public void onGpsStatusChanged(int event)
         {
@@ -159,7 +171,7 @@ public class PowerStatsLoggerService extends Service {
         boolean present = intent.getBooleanExtra(BatteryManager.EXTRA_PRESENT, true);
         int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE,
-                                             PowerRecord.UNKNOWN);
+                                             UNKNOWN);
         int health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH,
                                         BatteryManager.BATTERY_HEALTH_UNKNOWN);
         int powerSource = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
@@ -168,7 +180,7 @@ public class PowerStatsLoggerService extends Service {
         int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE,
                                        PowerRecord.DEFAULT_SCALE);
         int voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE,
-                                         PowerRecord.UNKNOWN);
+                                         UNKNOWN);
         String technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY);
 
         pr.setBatteryPresent(present);
@@ -184,16 +196,22 @@ public class PowerStatsLoggerService extends Service {
     }
 
     private void updateWifiState(Intent intent) {
-        int extraWifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
-                                                PowerRecord.UNKNOWN);
+        int extraWifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, UNKNOWN);
         switch(extraWifiState) {
             case WifiManager.WIFI_STATE_ENABLED:
             case WifiManager.WIFI_STATE_DISABLED:
             case WifiManager.WIFI_STATE_UNKNOWN:
-            case PowerRecord.UNKNOWN:
+            case UNKNOWN:
                 pr.setWifiState(extraWifiState);
         }
         recordChanged();
+    }
+
+    private void updateConnectivityState(Intent intent) {
+        int networkType = intent.getIntExtra(ConnectivityManager.EXTRA_NETWORK_TYPE, UNKNOWN);
+        if (networkType == ConnectivityManager.TYPE_MOBILE) {
+
+        }
     }
 
     private void updateScreenState(Intent intent) {

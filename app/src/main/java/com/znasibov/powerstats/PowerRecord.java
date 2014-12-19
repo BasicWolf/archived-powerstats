@@ -51,6 +51,10 @@ public class PowerRecord {
     public static final int GPS_STATE_ON = GpsStatus.GPS_EVENT_STARTED;
     public static final int GPS_STATE_OFF = GpsStatus.GPS_EVENT_STOPPED;
 
+    // Mobile data network
+    public static final int MOBILE_DATA_ON = 1;
+    public static final int MOBILE_DATA_OFF = 0;
+
     // -- Fields -- //
     private long timestamp;
 
@@ -66,6 +70,7 @@ public class PowerRecord {
     private int batteryVoltage = UNKNOWN;
 
     private int wifiState = UNKNOWN;
+    private int mobileDataState = UNKNOWN;
     private int phoneServiceState = UNKNOWN;
     private int screenState = UNKNOWN;
     private int gpsState = UNKNOWN;
