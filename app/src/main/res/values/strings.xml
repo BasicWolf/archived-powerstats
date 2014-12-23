@@ -21,6 +21,10 @@
     <string name="wifi_state_disabled">@string/state_off</string>
     <string name="wifi_state_unknown">@string/state_unknown</string>
 
+    <string name="mobile_state_on">@string/state_on</string>
+    <string name="mobile_state_off">@string/state_off</string>
+    <string name="mobile_state_unknown">@string/state_unknown</string>
+
     <string name="phone_service_state_on">@string/state_on</string>
     <string name="phone_service_state_off">@string/state_off</string>
     <string name="phone_service_state_unknown">@string/state_unknown</string>

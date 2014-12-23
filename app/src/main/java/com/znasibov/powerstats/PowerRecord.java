@@ -51,6 +51,10 @@ public class PowerRecord {
     public static final int GPS_STATE_ON = GpsStatus.GPS_EVENT_STARTED;
     public static final int GPS_STATE_OFF = GpsStatus.GPS_EVENT_STOPPED;
 
+    // Mobile data network
+    public static final int MOBILE_DATA_ON = 1;
+    public static final int MOBILE_DATA_OFF = 0;
+
     // -- Fields -- //
     private long timestamp;
 
@@ -66,13 +70,13 @@ public class PowerRecord {
     private int batteryVoltage = UNKNOWN;
 
     private int wifiState = UNKNOWN;
+    private int mobileDataState = UNKNOWN;
     private int phoneServiceState = UNKNOWN;
     private int screenState = UNKNOWN;
     private int gpsState = UNKNOWN;
 
     private boolean dirty = false;
     private boolean readingFromDatabase = false;
-
 
     public String toString(Context context) {
         String[] labels = new String[] {
@@ -86,8 +90,8 @@ public class PowerRecord {
             String.format("Power source: %s", powerSourceToString()),
             String.format("Health: %s", healthToString()),
             String.format("Technology: %s", batteryTechnology),
-
             String.format("Wifi: %s", getWifiStateAsString()),
+            String.format("Mobile data: %s", getMobileDataStateAsString()),
             String.format("Phone: %s", getPhoneServiceStateAsString()),
             String.format("Screen: %s", getScreenStateAsString()),
             String.format("GPS: %s", getGpsStateAsString()),
@@ -117,7 +121,6 @@ public class PowerRecord {
             case UNKNOWN:
             default:
                 return "unknown";
-
         }
     }
 
@@ -167,6 +170,19 @@ public class PowerRecord {
             case UNKNOWN:
             default:
                 return context.getString(R.string.wifi_state_unknown);
+        }
+    }
+
+    public String getMobileDataStateAsString() {
+        Context context = PowerStatsApplication.getAppContext();
+        switch (mobileDataState) {
+            case MOBILE_DATA_ON:
+                return context.getString(R.string.mobile_state_on);
+            case MOBILE_DATA_OFF:
+                return context.getString(R.string.mobile_state_off);
+            case UNKNOWN:
+            default:
+                return context.getString(R.string.mobile_state_unknown);
         }
     }
 
@@ -246,6 +262,7 @@ public class PowerRecord {
         batteryVoltage = p.batteryVoltage;
         phoneServiceState = p.phoneServiceState;
         wifiState = p.wifiState;
+        mobileDataState = p.mobileDataState;
         screenState = p.screenState;
         gpsState = p.gpsState;
         dirty = p.dirty;
@@ -254,6 +271,7 @@ public class PowerRecord {
     public PowerRecord copy() {
         return new PowerRecord(this);
     }
+
 
     public boolean isReadyForRecording() {
         return  batteryLevel != UNKNOWN &&
@@ -265,6 +283,7 @@ public class PowerRecord {
                 batteryScale != UNKNOWN &&
                 phoneServiceState != UNKNOWN &&
                 wifiState != UNKNOWN &&
+                mobileDataState != UNKNOWN &&
                 screenState != UNKNOWN &&
                 gpsState != UNKNOWN;
     }
@@ -401,6 +420,17 @@ public class PowerRecord {
             setDirty();
         }
         this.wifiState = wifiState;
+    }
+
+    public int getMobileDataState() {
+        return mobileDataState;
+    }
+
+    public void setMobileDataState(int mobileDataState) {
+        if (this.mobileDataState != mobileDataState) {
+            setDirty();
+        }
+        this.mobileDataState = mobileDataState;
     }
 
     public int getPhoneServiceState() {
