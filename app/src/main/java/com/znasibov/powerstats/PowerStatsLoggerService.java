@@ -105,19 +105,9 @@ public class PowerStatsLoggerService extends Service {
         ConnectivityManager cm =
                 (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        if (networkInfo != null) {
-            boolean connected = networkInfo.isConnectedOrConnecting();
-            boolean isMobile = networkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
-            Intent intent = new Intent();
-            intent.putExtra(ConnectivityManager.EXTRA_NETWORK_TYPE, ConnectivityManager.TYPE_MOBILE);
-            updateConnectivityState(intent);
-        } else {
-            Intent intent = new Intent();
-            updateConnectivityState(intent);
-        }
-
-
+        Intent intent = new Intent();
+        intent.putExtra(ConnectivityManager.EXTRA_NETWORK_TYPE, ConnectivityManager.TYPE_MOBILE);
+        updateConnectivityState(intent);
     }
 
     private void updateScreenStateWithLatestData() {
@@ -242,6 +232,9 @@ public class PowerStatsLoggerService extends Service {
                 } else {
                     pr.setMobileDataState(PowerRecord.MOBILE_DATA_OFF);
                 }
+                recordChanged();
+            } else {
+                pr.setMobileDataState(PowerRecord.MOBILE_DATA_OFF);
                 recordChanged();
             }
         }
